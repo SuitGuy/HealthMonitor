@@ -22,6 +22,13 @@ import org.jfree.data.xy.XYSeriesCollection;
 import org.jfree.ui.ApplicationFrame;
 import org.jfree.ui.RefineryUtilities;
 
+/**
+ * test class used to test possible solutions for the live rendering of ECG
+ * data.
+ * 
+ * @author Paul
+ *
+ */
 public class Test extends ApplicationFrame {
 	/**
 	 * 
@@ -45,7 +52,8 @@ public class Test extends ApplicationFrame {
 	}
 
 	/**
-	 * Creates a sample dataset.
+	 * creates an initial data set from file used in testing may not be needed
+	 * for network version unless use found for reading from file.
 	 * 
 	 * @return a sample dataset.
 	 */
@@ -76,22 +84,8 @@ public class Test extends ApplicationFrame {
 			e.printStackTrace();
 		}
 
-		/*
-		 * final XYSeries series2 = new XYSeries("Second"); series2.add(1.0,
-		 * 5.0); series2.add(2.0, 7.0); series2.add(3.0, 6.0); series2.add(4.0,
-		 * 8.0); series2.add(5.0, 4.0); series2.add(6.0, 4.0); series2.add(7.0,
-		 * 2.0); series2.add(8.0, 1.0);
-		 * 
-		 * final XYSeries series3 = new XYSeries("Third"); series3.add(3.0,
-		 * 4.0); series3.add(4.0, 3.0); series3.add(5.0, 2.0); series3.add(6.0,
-		 * 3.0); series3.add(7.0, 6.0); series3.add(8.0, 3.0); series3.add(9.0,
-		 * 4.0); series3.add(10.0, 3.0);
-		 */
 		final XYSeriesCollection dataset = new XYSeriesCollection();
 		dataset.addSeries(series);
-		// dataset.addSeries(series2);
-		// dataset.addSeries(series3);
-
 		return dataset;
 
 	}
@@ -117,35 +111,24 @@ public class Test extends ApplicationFrame {
 				false // urls
 		);
 
-		// NOW DO SOME OPTIONAL CUSTOMISATION OF THE CHART...
+		
 		chart.setBackgroundPaint(Color.white);
-
-		// final StandardLegend legend = (StandardLegend) chart.getLegend();
-		// legend.setDisplaySeriesShapes(true);
-
-		// get a reference to the plot for further customisation...
 		final XYPlot plot = chart.getXYPlot();
 		plot.setBackgroundPaint(Color.lightGray);
 		plot.setDomainGridlinePaint(Color.white);
 		plot.setRangeGridlinePaint(Color.white);
 
 		final XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
-		/*
-		 * renderer.setSeriesLinesVisible(0, false);
-		 * renderer.setSeriesShapesVisible(1, false);
-		 */
+
 		plot.setRenderer(renderer);
 
-		// change the auto tick unit selection to integer units only...
+
 		final NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
 		rangeAxis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
 
 		NumberAxis range = (NumberAxis) plot.getRangeAxis();
 		range.setRange(1.6, 2.5);
 		range.setTickUnit(new NumberTickUnit(0.1));
-
-		// OPTIONAL CUSTOMISATION COMPLETED.
-
 		return chart;
 
 	}
@@ -166,7 +149,7 @@ public class Test extends ApplicationFrame {
 		ArrayList<Double> ecgFile = test.readECGFile(FILENAME);
 		for (int i = 0; i < 300; i++) {
 			Thread.sleep(50);
-			if(ecgFile.size()>0){ 
+			if (ecgFile.size() > 0) {
 				test.getNewData(ecgFile);
 			}
 		}
@@ -174,11 +157,11 @@ public class Test extends ApplicationFrame {
 
 	private void getNewData(ArrayList<Double> ecgFile) {
 		series.remove(0);
-		series.add(DATASIZE,ecgFile.remove(0));
-		DATASIZE ++;
+		series.add(DATASIZE, ecgFile.remove(0));
+		DATASIZE++;
 	}
-	
-	private ArrayList<Double> readECGFile(String fileName){ 
+
+	private ArrayList<Double> readECGFile(String fileName) {
 		ArrayList<Double> list = new ArrayList<Double>();
 		BufferedReader br;
 		try {
@@ -186,8 +169,8 @@ public class Test extends ApplicationFrame {
 			try {
 				String line;
 				while ((line = br.readLine()) != null) {
-					
-						list.add(Double.parseDouble(line));
+
+					list.add(Double.parseDouble(line));
 				}
 			} catch (IOException e) {
 				System.err.println("Error whilst reading from file.");
