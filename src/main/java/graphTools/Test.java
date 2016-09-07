@@ -147,7 +147,7 @@ public class Test extends ApplicationFrame {
 		RefineryUtilities.centerFrameOnScreen(test);
 		test.setVisible(true);
 		ArrayList<Double> ecgFile = test.readECGFile(FILENAME);
-		for (int i = 0; i < 300; i++) {
+		for (int i = 0; i < 30; i++) {
 			Thread.sleep(50);
 			if (ecgFile.size() > 0) {
 				test.getNewData(ecgFile);
@@ -156,9 +156,14 @@ public class Test extends ApplicationFrame {
 	}
 
 	private void getNewData(ArrayList<Double> ecgFile) {
-		series.remove(0);
-		series.add(DATASIZE, ecgFile.remove(0));
-		DATASIZE++;
+		//series.remove(0);
+		for(int i = 0 ; i < DATASIZE -2; i++){	
+			System.out.println(i);
+				series.update(i, series.getX(i + 1));
+		}
+		
+		series.update(DATASIZE, ecgFile.remove(0));
+		//DATASIZE++;
 	}
 
 	private ArrayList<Double> readECGFile(String fileName) {
