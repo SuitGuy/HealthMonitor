@@ -7,6 +7,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.List;
+
+import javax.swing.SwingWorker;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -58,38 +61,24 @@ public class Test2 extends ApplicationFrame {
 	 * 
 	 * @return a sample dataset.
 	 */
-/*	private XYDataset createDataset(String fileName) {
-		BufferedReader br;
-		double i = 1.0;
-		try {
-			br = new BufferedReader(new InputStreamReader(new FileInputStream(fileName)));
-			try {
-				String line;
-				while ((line = br.readLine()) != null && i < DATASIZE) {
-					series.add(i, Double.parseDouble(line));
-					i++;
-				}
-			} catch (IOException e) {
-				System.err.println("Error whilst reading from file.");
-				e.printStackTrace();
-			} finally {
-				try {
-					br.close();
-				} catch (IOException e) {
-					System.err.println("error closing file.");
-					e.printStackTrace();
-				}
-			}
-		} catch (FileNotFoundException e) {
-			System.err.println("Error Could not locate file: " + fileName);
-			e.printStackTrace();
-		}
-
-		final XYSeriesCollection dataset = new XYSeriesCollection();
-		dataset.addSeries(series);
-		return dataset;
-
-	}*/
+	/*
+	 * private XYDataset createDataset(String fileName) { BufferedReader br;
+	 * double i = 1.0; try { br = new BufferedReader(new InputStreamReader(new
+	 * FileInputStream(fileName))); try { String line; while ((line =
+	 * br.readLine()) != null && i < DATASIZE) { series.add(i,
+	 * Double.parseDouble(line)); i++; } } catch (IOException e) {
+	 * System.err.println("Error whilst reading from file.");
+	 * e.printStackTrace(); } finally { try { br.close(); } catch (IOException
+	 * e) { System.err.println("error closing file."); e.printStackTrace(); } }
+	 * } catch (FileNotFoundException e) {
+	 * System.err.println("Error Could not locate file: " + fileName);
+	 * e.printStackTrace(); }
+	 * 
+	 * final XYSeriesCollection dataset = new XYSeriesCollection();
+	 * dataset.addSeries(series); return dataset;
+	 * 
+	 * }
+	 */
 
 	/**
 	 * Creates a chart.
@@ -102,9 +91,8 @@ public class Test2 extends ApplicationFrame {
 	private JFreeChart createChart(final XYDataset dataset) {
 
 		// create the chart...
-		final JFreeChart chart = ChartFactory.createTimeSeriesChart(
-				"ECG", // chart
-						// title
+		final JFreeChart chart = ChartFactory.createTimeSeriesChart("ECG", // chart
+																			// title
 				"Time", // x axis label
 				"mV", // y axis label
 				dataset, // data
@@ -113,7 +101,6 @@ public class Test2 extends ApplicationFrame {
 				false // urls
 		);
 
-		
 		chart.setBackgroundPaint(Color.white);
 		final XYPlot plot = chart.getXYPlot();
 		plot.setBackgroundPaint(Color.lightGray);
@@ -124,14 +111,13 @@ public class Test2 extends ApplicationFrame {
 
 		plot.setRenderer(renderer);
 
-
 		final NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
 		rangeAxis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
 
 		NumberAxis range = (NumberAxis) plot.getRangeAxis();
 		range.setRange(1.6, 2.5);
 		range.setTickUnit(new NumberTickUnit(0.1));
-		ValueAxis timeaxis =  plot.getDomainAxis();
+		ValueAxis timeaxis = plot.getDomainAxis();
 		timeaxis.setAutoRange(true);
 		timeaxis.setFixedAutoRange(1000.0);
 		return chart;
@@ -151,21 +137,42 @@ public class Test2 extends ApplicationFrame {
 		Test2.pack();
 		RefineryUtilities.centerFrameOnScreen(Test2);
 		Test2.setVisible(true);
-		ArrayList<Double> ecgFile = Test2.readECGFile(FILENAME);
-		for (int i = 0; i < 300; i++) {
-			Thread.sleep(50);
-			if (ecgFile.size() > 0) {
-				Test2.getNewData(ecgFile);
-			}
-		}
+
+		SwingWorker swingWorker = Test2.createUpdateThread();
+		swingWorker.execute();
 	}
 
-	private void getNewData(ArrayList<Double> ecgFile) {
-		//series.remove(0);
-		
+	private SwingWorker<List<Double>, Double> createUpdateThread() {
+		SwingWorker<List<Double>, Double> swingWorker = new SwingWorker<List<Double>, Double>() {
+			
+			@Override
+			protected List<Double> doInBackground() throws Exception {
+				ArrayList<Double> ecgFile = readECGFile(FILENAME);
+				for (int i = 0; i < 300; i++) {
+					Thread.sleep(50);
+					if (ecgFile.size() > 0) {
+						Double data = getNewData(ecgFile);
+						publish(data);
+					}
+				}
+				return null;
+			}
+
+			@Override
+			protected void process(List<Double> chunks) {
+				for (Double double1 : chunks) {
+					series.add(new Millisecond(), double1);
+				}
+			}
+		};
+		return swingWorker;
+	}
+
+	private Double getNewData(ArrayList<Double> ecgFile) {
 		Double reading = ecgFile.remove(0);
 		final Millisecond now = new Millisecond();
-		this.series.add(now, reading);
+		return reading;
+		// this.series.add(now, reading);
 	}
 
 	private ArrayList<Double> readECGFile(String fileName) {
