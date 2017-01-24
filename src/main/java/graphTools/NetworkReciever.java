@@ -21,6 +21,8 @@ public class NetworkReciever implements Runnable{
 		int count = 0;
 		if(args.length > 0 && args.length < 2){ 
 			port = Integer.parseInt(args[1]);
+		}else {
+			System.out.println("No/Invalid Arguments supplied resorting to default port 19995");
 		}
 		if(args.length > 2){ 
 			System.out.println("To many arguments supplied");
@@ -31,6 +33,7 @@ public class NetworkReciever implements Runnable{
 			@SuppressWarnings("resource")
 			ServerSocket socket = new ServerSocket(port);
 			System.out.println("Server Initialized With Port " + port);
+			System.out.println(socket.getLocalPort());
 			// check socket for incoming connections and start new processing
 			// thread.
 			while (true) {
